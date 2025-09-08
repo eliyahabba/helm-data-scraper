@@ -94,9 +94,9 @@ def _download_file_to_path(json_data: dict, save_path: str) -> None:
         json.dump(json_data, f, indent=2)
 
 
-def _setup_task_directory(output_dir: str, task: str, overwrite: bool) -> str:
+def _setup_task_directory(output_dir: str, task: str, benchmark: str, overwrite: bool) -> str:
     """Create and setup task directory with proper permissions."""
-    save_dir = os.path.join(output_dir, task)
+    save_dir = os.path.join(output_dir, benchmark, task)
 
     # Clean existing directory if overwriting
     if os.path.exists(save_dir) and overwrite:
@@ -131,7 +131,7 @@ def download_task(task: str, output_dir: str, benchmark: str, overwrite: bool = 
     versions = versions[start_idx:]
 
     # Setup directory
-    save_dir = _setup_task_directory(output_dir, task, overwrite)
+    save_dir = _setup_task_directory(output_dir, task, benchmark, overwrite)
 
     # Initialize statistics
     file_types = list(HELM_FILE_TYPES)
