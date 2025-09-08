@@ -78,6 +78,18 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "omni_math_accuracy",
             "description": "Accuracy for Omni-MATH style tasks (value between 0 and 1)."
         }),
+        ('wildbench_score_rescaled', {
+            "method_name": "wildbench_score_rescaled",
+            "description": "Rescaled WildBench score (0 to 1)."
+        }),
+        ('chain_of_thought_correctness', {
+            "method_name": "chain_of_thought_correctness",
+            "description": "Correctness of chain-of-thought reasoning (0 to 1)."
+        }),
+        ('ifeval_strict_accuracy', {
+            "method_name": "ifeval_strict_accuracy",
+            "description": "IF-Eval strict accuracy (0 to 1)."
+        }),
     ]
 
 
@@ -107,7 +119,7 @@ def select_evaluation_score(stats: Dict) -> Tuple[str, float]:
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, edit_similarity, toxic_frac, omni_math_accuracy. "
+        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy. "
         f"Available fields: {available_info}"
     )
 
