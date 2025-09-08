@@ -34,6 +34,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "math_equiv_chain_of_thought",
             "description": "Evaluates the response based on mathematical equivalence in chain of thought reasoning."
         }),
+        ('math_equiv', {
+            "method_name": "math_equiv",
+            "description": "Evaluates mathematical equivalence of the final answer without chain-of-thought."
+        }),
         ('f1_score', {
             "method_name": "f1_score",
             "description": "Calculates the F1 score between the predicted and correct answers."
@@ -103,7 +107,7 @@ def select_evaluation_score(stats: Dict) -> Tuple[str, float]:
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, edit_similarity, toxic_frac, omni_math_accuracy. "
+        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, edit_similarity, toxic_frac, omni_math_accuracy. "
         f"Available fields: {available_info}"
     )
 
