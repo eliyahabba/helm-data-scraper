@@ -5,7 +5,7 @@ import os
 import pandas as pd
 from playwright.async_api import async_playwright
 
-from config.settings import BENCHMARK_CSVS_DIR
+from config.settings import DEFAULT_DIRS
 
 
 async def scrape_helm_data(benchmark: str):
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--output-dir",
         type=str,
-        default=str(BENCHMARK_CSVS_DIR),
+        default=str(DEFAULT_DIRS['benchmark_csvs_dir']),
         help="The directory to save the output CSV file."
     )
     args = parser.parse_args()

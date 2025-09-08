@@ -10,8 +10,6 @@ from tqdm import tqdm
 
 # Import centralized settings (paths, constants)
 from config.settings import (
-    DOWNLOADS_DIR,
-    PROCESSED_DATA_DIR,
     DEFAULT_START_VERSION,
     HELM_VERSIONS,
     HELM_URL_WITH_BENCHMARK_TEMPLATE,
@@ -58,11 +56,6 @@ def log_warning(message, emoji="⚠️"):
 def log_step(step_name, emoji="🔄"):
     logger.info(f"{emoji} {step_name}")
     print(f"{Fore.MAGENTA}{emoji} {step_name}{Style.RESET_ALL}")
-
-
-# Create necessary directories
-os.makedirs(DOWNLOADS_DIR, exist_ok=True)
-os.makedirs(PROCESSED_DATA_DIR, exist_ok=True)
 
 
 def get_json_from_url(url):
@@ -210,4 +203,3 @@ def download_tasks(tasks: List[str], output_dir: str, benchmark: str, overwrite:
             log_error(f"Failed to download task: {task}")
 
     return saved_files
-
