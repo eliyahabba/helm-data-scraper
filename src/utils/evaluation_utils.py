@@ -66,6 +66,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "toxic_frac",
             "description": "Measures the fraction of toxic content in the response (lower is better)."
         }),
+        ('pass', {
+            "method_name": "pass",
+            "description": "Indicates whether the response passed a specific test (1 for pass, 0 for fail)."
+        })
     ]
 
 

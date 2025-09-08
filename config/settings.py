@@ -26,16 +26,45 @@ HF_MAP_DATA_DIR: Path = Path(__file__).parent.parent / "data" / "hf_map_data"
 # Path to model metadata CSV file used by model utilities  
 MODEL_METADATA_CSV: Path = Path(__file__).parent / "model_metadata.csv"
 
-# Base directory for all data files (now in project root)
-DATA_DIR: Path = Path(__file__).parent.parent / "data"
 
-# Directory for storing downloaded benchmark CSVs.
-BENCHMARK_CSVS_DIR: Path = DATA_DIR / "benchmark_lines"
+# --------------------------------------------------------------------------------------
+# Centralized Data Directory Management
+# --------------------------------------------------------------------------------------
 
-# Directory paths
-DOWNLOADS_DIR: Path = DATA_DIR / "downloads"
-PROCESSED_DATA_DIR: Path = DATA_DIR / "processed"
-AGGREGATED_DATA_DIR: Path = DATA_DIR / "aggregated"
+# Default base directory for all data files.
+# This can be overridden at runtime via command-line arguments in scripts like main_processor.py.
+DEFAULT_DATA_DIR: Path = Path(__file__).parent.parent / "data"
+
+# Subdirectory names. Centralized here to ensure consistency across the project.
+DOWNLOADS_SUBDIR: str = "downloads"
+PROCESSED_SUBDIR: str = "processed"
+AGGREGATED_SUBDIR: str = "aggregated"
+BENCHMARK_LINES_SUBDIR: str = "benchmark_lines"
+
+
+def get_data_directories(base_data_dir: Path) -> Dict[str, Path]:
+    """
+    Generates a dictionary of all critical data directory paths based on a provided
+    base directory. This allows for easy redirection of all data storage.
+    
+    Args:
+        base_data_dir: The base data directory path.
+        
+    Returns:
+        A dictionary mapping directory roles to their full Path objects.
+    """
+    return {
+        'data_dir': base_data_dir,
+        'downloads_dir': base_data_dir / DOWNLOADS_SUBDIR,
+        'processed_dir': base_data_dir / PROCESSED_SUBDIR,
+        'aggregated_dir': base_data_dir / AGGREGATED_SUBDIR,
+        'benchmark_csvs_dir': base_data_dir / BENCHMARK_LINES_SUBDIR,
+    }
+
+
+# Generate default directory paths for easy import elsewhere in the application
+# that do not need dynamic path resolution.
+DEFAULT_DIRS = get_data_directories(DEFAULT_DATA_DIR)
 
 # --------------------------------------------------------------------------------------
 # HELM download & processing settings

@@ -22,11 +22,10 @@ from src.core.downloader import (
 )
 # Import centralized settings for paths and constants
 from config.settings import (
-    DOWNLOADS_DIR,
-    PROCESSED_DATA_DIR,
+    DEFAULT_DATA_DIR,
     TQDM_BAR_FORMAT,
     PROCESS_POOL_MAX_WORKERS,
-    BENCHMARK_CSVS_DIR,
+    get_data_directories,
 )
 
 # Initialize colorama
@@ -177,17 +176,18 @@ def process_line(line: str, output_dir: str, benchmark: str, downloads_dir: str 
     result["status"] = "failed"  # Reset status to failed for processing
 
     try:
-        # Use provided downloads_dir or default to DOWNLOADS_DIR
-        actual_downloads_dir = downloads_dir if downloads_dir is not None else str(DOWNLOADS_DIR)
+        # Use provided downloads_dir (should always be provided now)
+        if downloads_dir is None:
+            raise ValueError("downloads_dir parameter is required")
         
         # Download the data
         log_step(f"Starting download phase", "🔽")
-        downloaded_files = download_tasks([line], output_dir=actual_downloads_dir, benchmark=benchmark, overwrite=overwrite)
+        downloaded_files = download_tasks([line], output_dir=downloads_dir, benchmark=benchmark, overwrite=overwrite)
         if not downloaded_files:
             log_error(f"No files were downloaded")
             raise ValueError("No files were downloaded")
 
-        saved_dir = os.path.join(actual_downloads_dir, line)
+        saved_dir = os.path.join(downloads_dir, line)
 
         # Convert the data
         log_step(f"Starting conversion phase", "🔄")
@@ -348,28 +348,34 @@ if __name__ == "__main__":
     parser.add_argument("--overwrite", action="store_true", help="Overwrite existing output files")
     parser.add_argument("--max-workers", type=int, default=PROCESS_POOL_MAX_WORKERS,
                         help=f"Maximum number of parallel processes (default: {PROCESS_POOL_MAX_WORKERS})")
-    parser.add_argument("--downloads-dir", type=str, default=str(DOWNLOADS_DIR),
-                        help=f"Directory for storing downloaded files (default: {DOWNLOADS_DIR})")
+    parser.add_argument("--data-dir", type=str, default=str(DEFAULT_DATA_DIR),
+                        help=f"Base data directory (default: {DEFAULT_DATA_DIR})")
 
     args = parser.parse_args()
 
     log_info(f"Starting HELM Data Processor", "🚀")
     log_info(f"Arguments: {args}", "🔧")
 
-    # Create downloads directory
-    downloads_dir = Path(args.downloads_dir)
-    os.makedirs(downloads_dir, exist_ok=True)
-    log_info(f"Downloads will be saved to: {downloads_dir}", "📥")
+    # Create dynamic directory structure based on custom data directory
+    custom_data_dir = Path(args.data_dir)
+    data_dirs = get_data_directories(custom_data_dir)
+    
+    # Create necessary directories
+    for dir_path in data_dirs.values():
+        os.makedirs(dir_path, exist_ok=True)
+    
+    log_info(f"Using data directory: {data_dirs['data_dir']}", "📁")
+    log_info(f"Downloads will be saved to: {data_dirs['downloads_dir']}", "📥")
 
     log_step(f"Processing benchmark: {args.benchmark}", "📊")
 
     # Create dynamic output directory
-    output_dir_path = PROCESSED_DATA_DIR / args.benchmark
+    output_dir_path = data_dirs['processed_dir'] / args.benchmark
     os.makedirs(output_dir_path, exist_ok=True)
     log_info(f"Output will be saved to: {output_dir_path}", "📂")
 
-    # Construct path to the CSV file
-    csv_to_process = BENCHMARK_CSVS_DIR / f"helm_{args.benchmark}.csv"
+    # Construct path to the CSV file using custom directory
+    csv_to_process = data_dirs['benchmark_csvs_dir'] / f"helm_{args.benchmark}.csv"
 
     if not csv_to_process.exists() or args.overwrite:
         if not csv_to_process.exists():
@@ -377,7 +383,7 @@ if __name__ == "__main__":
         else:
             log_info(f"Overwrite flag is set. Re-downloading CSV for benchmark '{args.benchmark}'.", "📥")
         try:
-            asyncio.run(create_csv_main(benchmark=args.benchmark, output_dir=str(BENCHMARK_CSVS_DIR)))
+            asyncio.run(create_csv_main(benchmark=args.benchmark, output_dir=str(data_dirs['benchmark_csvs_dir'])))
             log_success(f"Successfully created CSV: {csv_to_process}", "✅")
         except Exception as e:
             log_error(f"Failed to create CSV for benchmark '{args.benchmark}': {e}", "❌")
@@ -389,7 +395,7 @@ if __name__ == "__main__":
 
     log_step(f"Processing from CSV file: {csv_to_process_str}", "📋")
     main(csv_file=csv_to_process_str, output_dir=output_dir_path, benchmark=args.benchmark,
-         adapter_method=args.adapter_method, downloads_dir=args.downloads_dir,
+         adapter_method=args.adapter_method, downloads_dir=str(data_dirs['downloads_dir']),
          keep_temp_files=args.keep_temp, overwrite=args.overwrite, max_workers=args.max_workers)
 
     log_success(f"HELM Data Processor completed", "🏁")
