@@ -14,7 +14,7 @@ from config.settings import (
     HELM_VERSIONS,
     HELM_URL_WITH_BENCHMARK_TEMPLATE,
     HELM_URL_WITHOUT_BENCHMARK_TEMPLATE,
-    HELM_FILE_TYPES,
+    HELM_FILE_TYPES, INSTRUCT_HELM_URL_WITHOUT_VERSION_TEMPLATE,
 )
 
 # Initialize colorama
@@ -79,6 +79,11 @@ def _try_get_json_data(task: str, file_type: str, version: str, benchmark: str) 
     if json_data is None:
         url_without_benchmark = f"{HELM_URL_WITHOUT_BENCHMARK_TEMPLATE.format(version=version)}/{task}/{file_type}.json"
         json_data = get_json_from_url(url_without_benchmark)
+
+    # If not found, try URL without version
+    if json_data is None and benchmark == 'instruct':
+            url_without_benchmark = f"{INSTRUCT_HELM_URL_WITHOUT_VERSION_TEMPLATE.format(benchmark=benchmark)}/{task}/{file_type}.json"
+            json_data = get_json_from_url(url_without_benchmark)
 
     return json_data
 
