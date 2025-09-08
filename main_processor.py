@@ -365,14 +365,18 @@ if __name__ == "__main__":
         os.makedirs(dir_path, exist_ok=True)
     
     log_info(f"Using data directory: {data_dirs['data_dir']}", "📁")
-    log_info(f"Downloads will be saved to: {data_dirs['downloads_dir']}", "📥")
+
+    # Define and create benchmark-specific directories
+    benchmark_downloads_dir = data_dirs['downloads_dir'] / args.benchmark
+    output_dir_path = data_dirs['processed_dir'] / args.benchmark
+    os.makedirs(benchmark_downloads_dir, exist_ok=True)
+    os.makedirs(output_dir_path, exist_ok=True)
+
+    # Log paths
+    log_info(f"Downloads for '{args.benchmark}' benchmark will be saved to: {benchmark_downloads_dir}", "📥")
+    log_info(f"Processed output for '{args.benchmark}' benchmark will be saved to: {output_dir_path}", "📂")
 
     log_step(f"Processing benchmark: {args.benchmark}", "📊")
-
-    # Create dynamic output directory
-    output_dir_path = data_dirs['processed_dir'] / args.benchmark
-    os.makedirs(output_dir_path, exist_ok=True)
-    log_info(f"Output will be saved to: {output_dir_path}", "📂")
 
     # Construct path to the CSV file using custom directory
     csv_to_process = data_dirs['benchmark_csvs_dir'] / f"helm_{args.benchmark}.csv"
@@ -395,7 +399,7 @@ if __name__ == "__main__":
 
     log_step(f"Processing from CSV file: {csv_to_process_str}", "📋")
     main(csv_file=csv_to_process_str, output_dir=output_dir_path, benchmark=args.benchmark,
-         adapter_method=args.adapter_method, downloads_dir=str(data_dirs['downloads_dir']),
+         adapter_method=args.adapter_method, downloads_dir=str(benchmark_downloads_dir),
          keep_temp_files=args.keep_temp, overwrite=args.overwrite, max_workers=args.max_workers)
 
     log_success(f"HELM Data Processor completed", "🏁")
