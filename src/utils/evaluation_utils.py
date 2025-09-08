@@ -69,7 +69,11 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
         ('pass', {
             "method_name": "pass",
             "description": "Indicates whether the response passed a specific test (1 for pass, 0 for fail)."
-        })
+        }),
+        ('omni_math_accuracy', {
+            "method_name": "omni_math_accuracy",
+            "description": "Accuracy for Omni-MATH style tasks (value between 0 and 1)."
+        }),
     ]
 
 
@@ -99,7 +103,7 @@ def select_evaluation_score(stats: Dict) -> Tuple[str, float]:
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, edit_similarity, toxic_frac. "
+        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, edit_similarity, toxic_frac, omni_math_accuracy. "
         f"Available fields: {available_info}"
     )
 
