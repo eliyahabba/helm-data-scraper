@@ -80,11 +80,6 @@ def _try_get_json_data(task: str, file_type: str, version: str, benchmark: str) 
         url_without_benchmark = f"{HELM_URL_WITHOUT_BENCHMARK_TEMPLATE.format(version=version)}/{task}/{file_type}.json"
         json_data = get_json_from_url(url_without_benchmark)
 
-    # If not found, try URL without version
-    if json_data is None and benchmark == 'instruct':
-            url_without_benchmark = f"{INSTRUCT_HELM_URL_WITHOUT_VERSION_TEMPLATE.format(benchmark=benchmark)}/{task}/{file_type}.json"
-            json_data = get_json_from_url(url_without_benchmark)
-
     return json_data
 
 
@@ -174,6 +169,19 @@ def download_task(task: str, output_dir: str, benchmark: str, overwrite: bool = 
                 break
 
         if not downloaded:
+            # If not found, try URL without version
+            if benchmark == 'instruct':
+                url_without_benchmark = f"{INSTRUCT_HELM_URL_WITHOUT_VERSION_TEMPLATE.format(benchmark=benchmark)}/{task}/{file_type}.json"
+                json_data = get_json_from_url(url_without_benchmark)
+                if json_data:
+                    _download_file_to_path(json_data, save_path)
+                    task_stats["version_usage"][benchmark] += 1
+                    task_stats["found_files"] += 1
+                    log_success(f"Found {task}/{file_type}.json in instruction following URL", "📥")
+                else:
+                    task_stats["missing_files"] += 1
+                    log_warning(f"Could not find {task}/{file_type}.json in any version or instruction following URL", "🔍")
+
             task_stats["missing_files"] += 1
             log_warning(f"Could not find {task}/{file_type}.json in any version", "🔍")
 
