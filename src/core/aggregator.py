@@ -1,5 +1,4 @@
-from __future__ import annotations
-
+import argparse
 from pathlib import Path
 from typing import Iterable, List
 
@@ -7,7 +6,7 @@ import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
 
-from config.settings import PROCESSED_DATA_DIR, AGGREGATED_DATA_DIR
+from config.settings import DEFAULT_DIRS
 
 REQUIRED_COLUMNS: List[str] = [
     "dataset_name",
@@ -27,8 +26,8 @@ def _batch_iter(items: List[Path], batch_size: int) -> Iterable[List[Path]]:
 
 def aggregate_to_parquet(
         benchmark: str,
-        input_dir: Path = PROCESSED_DATA_DIR,
-        output_dir: Path = AGGREGATED_DATA_DIR,
+        input_dir: Path = DEFAULT_DIRS['processed_dir'],
+        output_dir: Path = DEFAULT_DIRS['aggregated_dir'],
         batch_size: int = 10,
 ) -> Path:
     """Aggregate many HELM CSVs into a single Parquet file.
@@ -36,12 +35,17 @@ def aggregate_to_parquet(
     - Reads files in batches of `batch_size` to keep memory bounded
     - Keeps only REQUIRED_COLUMNS
     - Normalizes hf_split: 'valid' -> 'validation'
-    
+
     Args:
         benchmark: Benchmark type (e.g., 'classic', 'lite', 'mmlu')
         input_dir: Directory containing CSV files (default: data/processed/)
         output_dir: Directory to save parquet file (default: data/aggregated/)
         batch_size: Number of CSV files to process in each batch
+
+    Note:
+        The function automatically uses benchmark-specific subdirectories within
+        the provided input_dir (e.g., input_dir/benchmarks/) and saves the
+        aggregated file in output_dir.
     """
 
     # Use benchmark-specific input directory
@@ -104,17 +108,15 @@ def aggregate_to_parquet(
 
 
 if __name__ == "__main__":
-    import argparse
-
     parser = argparse.ArgumentParser(description="Aggregate HELM CSV files into Parquet format")
-    parser.add_argument("--benchmark", required=True, help="Benchmark type (e.g., 'classic', 'lite', 'mmlu')")
+    parser.add_argument("--benchmark", help="Benchmark type (e.g., 'classic', 'lite', 'mmlu')", default='classic')
     parser.add_argument("--input-dir",
-                        default=str(PROCESSED_DATA_DIR),
-                        help=f"Input directory containing CSV files (default: {PROCESSED_DATA_DIR})")
+                        default=str(DEFAULT_DIRS['processed_dir']),
+                        help=f"Input directory containing CSV files (default: {DEFAULT_DIRS['processed_dir']})")
     parser.add_argument("--output-dir",
-                        default=str(AGGREGATED_DATA_DIR),
-                        help=f"Output directory for parquet file (default: {AGGREGATED_DATA_DIR})")
-    parser.add_argument("--batch-size", type=int, default=10, help="Batch size for processing (default: 10)")
+                        default=str(DEFAULT_DIRS['aggregated_dir']),
+                        help=f"Output directory for parquet file (default: {DEFAULT_DIRS['aggregated_dir']})")
+    parser.add_argument("--batch-size", type=int, default=1000, help="Batch size for processing (default: 10)")
 
     args = parser.parse_args()
 
