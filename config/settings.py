@@ -113,3 +113,13 @@ PROCESS_POOL_MAX_WORKERS: int = 8
 TQDM_BAR_FORMAT: str = (
     "{l_bar}{bar:30}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}{postfix}]"
 )
+
+# --------------------------------------------------------------------------------------
+# Dataset groups / feature flags
+# --------------------------------------------------------------------------------------
+
+# Datasets for which we allow using inference runtime as a metric fallback
+# when no other evaluation metric is present.
+RUNTIME_METRIC_DATASETS: List[str] = [
+    "synthetic_efficiency",
+]

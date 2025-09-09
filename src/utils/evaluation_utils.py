@@ -8,6 +8,7 @@ import re
 from typing import Dict, List, Optional, Tuple
 import math
 import numpy as np
+from config.settings import RUNTIME_METRIC_DATASETS
 
 
 def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
@@ -21,6 +22,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
         ("exact_match", {
             "method_name": "label_only_match",
             "description": "Compares only the choice identifier/label to evaluate the response."
+        }),
+        ("exact_match_indicator", {
+            "method_name": "exact_match_indicator",
+            "description": "Binary exact match indicator (1 for exact match, 0 otherwise)."
         }),
         ("quasi_exact_match", {
             "method_name": "quasi_label_only_match",
@@ -90,15 +95,24 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "ifeval_strict_accuracy",
             "description": "IF-Eval strict accuracy (0 to 1)."
         }),
+        ('test_avg', {
+            "method_name": "test_avg",
+            "description": "Average number of tests passed."
+        }),
+        ('ndcg_10', {
+            "method_name": "ndcg_10",
+            "description": "Normalized Discounted Cumulative Gain at cutoff 10 (0 to 1)."
+        }),
     ]
 
 
-def select_evaluation_score(stats: Dict) -> Tuple[str, float]:
+def select_evaluation_score(stats: Dict, dataset_name: Optional[str] = None) -> Tuple[str, float]:
     """
     Select evaluation score using supported metrics in priority order.
 
     Args:
         stats: Statistics dictionary from prediction
+        dataset_name: Optional dataset name for conditional fallbacks
 
     Returns:
         Tuple of (method_name, score)
@@ -113,24 +127,31 @@ def select_evaluation_score(stats: Dict) -> Tuple[str, float]:
         if value is not None:
             return method["method_name"], value
 
+    # Conditional fallback: use inference_runtime only for synthetic_efficiency
+    if dataset_name in RUNTIME_METRIC_DATASETS:
+        runtime_value = stats.get("inference_runtime")
+        if runtime_value is not None:
+            return "inference_runtime", runtime_value
+
     # Collect available fields and their values for debugging
     available_fields = {key: value for key, value in stats.items() if value is not None}
     available_info = ", ".join([f"{key}: {value}" for key, value in available_fields.items()])
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy. "
+        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, inference_runtime (runtime-enabled datasets only). "
         f"Available fields: {available_info}"
     )
 
 
-def create_evaluation_section(prediction: Dict, instance: Dict) -> Dict:
+def create_evaluation_section(prediction: Dict, instance: Dict, dataset_name: Optional[str] = None) -> Dict:
     """
     Create evaluation section for evaluation schema.
 
     Args:
         prediction: Prediction dictionary
         instance: Instance dictionary
+        dataset_name: Optional dataset name for conditional fallbacks
 
     Returns:
         Evaluation section dictionary
@@ -147,7 +168,7 @@ def create_evaluation_section(prediction: Dict, instance: Dict) -> Dict:
 
     # Select score using supported metrics
     stats = prediction.get("stats", {}) or {}
-    method_name, score = select_evaluation_score(stats)
+    method_name, score = select_evaluation_score(stats, dataset_name)
 
     return {
         "ground_truth": correct_id,

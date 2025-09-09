@@ -84,7 +84,7 @@ def process_helm_data(data_dir: str) -> List[dict]:
                 "model": create_model_section(run_spec, MODEL_INFO),
                 "instance": create_instance_section(instance, request, dataset_name, HF_MAP_DATA_DIR),
                 "output": create_output_section(prediction),
-                "evaluation": create_evaluation_section(prediction, instance)
+                "evaluation": create_evaluation_section(prediction, instance, dataset_name)
             }
 
             # Flatten the example structure
