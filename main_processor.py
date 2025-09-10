@@ -3,6 +3,8 @@ import json
 import logging
 import os
 import shutil
+import signal
+import atexit
 import sys
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
@@ -155,6 +157,46 @@ def process_line(line: str, output_dir: str, benchmark: str, downloads_dir: str 
     # Create a predictable output filename based on the line
     expected_output_file = os.path.join(output_dir, f"{line}_converted.csv")
 
+    # Pre-compute the directory where downloads for this line will be stored
+    saved_dir = os.path.join(downloads_dir, line) if downloads_dir else None
+
+    def attempt_cleanup(reason: str) -> None:
+        """Best-effort cleanup that never raises upstream."""
+        if keep_temp_files:
+            log_info(f"Skipping cleanup ({reason}); keep_temp_files=True", "🚫")
+            return
+        if not saved_dir:
+            return
+        try:
+            cleanup(saved_dir)
+        except Exception as cleanup_err:
+            log_warning(f"Cleanup failed for '{saved_dir}' after {reason}: {cleanup_err}", "⚠️")
+
+    # Install signal handlers to attempt cleanup on termination
+    prev_sigint = signal.getsignal(signal.SIGINT)
+    prev_sigterm = signal.getsignal(signal.SIGTERM)
+
+    def _handle_termination_signal(signum, frame):
+        log_warning(f"Received termination signal ({signum}); attempting cleanup", "⚠️")
+        attempt_cleanup(f"signal {signum}")
+        try:
+            signal.signal(signum, signal.SIG_DFL)
+        except Exception:
+            pass
+        os.kill(os.getpid(), signum)
+
+    try:
+        signal.signal(signal.SIGINT, _handle_termination_signal)
+    except Exception:
+        pass
+    try:
+        signal.signal(signal.SIGTERM, _handle_termination_signal)
+    except Exception:
+        pass
+
+    # Also register process-exit cleanup as a last resort
+    atexit.register(lambda: attempt_cleanup("process exit"))
+
     # Check if the output file already exists
     if os.path.exists(expected_output_file) and not overwrite:
         log_info(f"Output file already exists: {expected_output_file}", "📋")
@@ -186,8 +228,6 @@ def process_line(line: str, output_dir: str, benchmark: str, downloads_dir: str 
         if not downloaded_files:
             log_error(f"No files were downloaded")
             raise ValueError("No files were downloaded")
-
-        saved_dir = os.path.join(downloads_dir, line)
 
         # Convert the data
         log_step(f"Starting conversion phase", "🔄")
@@ -223,6 +263,19 @@ def process_line(line: str, output_dir: str, benchmark: str, downloads_dir: str 
     except Exception as e:
         log_error(f"Error processing line '{line}': {str(e)}")
         result["error"] = str(e)
+    finally:
+        # Best-effort cleanup on failure or interruption
+        if result.get("status") != "success":
+            attempt_cleanup("failure or interruption")
+        # Restore previous signal handlers
+        try:
+            signal.signal(signal.SIGINT, prev_sigint)
+        except Exception:
+            pass
+        try:
+            signal.signal(signal.SIGTERM, prev_sigterm)
+        except Exception:
+            pass
 
     return result
 
