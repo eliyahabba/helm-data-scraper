@@ -47,6 +47,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "f1_score",
             "description": "Calculates the F1 score between the predicted and correct answers."
         }),
+        ('f1_set_match', {
+            "method_name": "f1_set_match",
+            "description": "F1 score computed over sets (order-invariant)."
+        }),
         ('exact_match_with_references', {
             "method_name": "exact_match_with_references",
             "description": "Compares the predicted answer with the correct answer using references."
@@ -139,7 +143,7 @@ def select_evaluation_score(stats: Dict, dataset_name: Optional[str] = None) -> 
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, inference_runtime (runtime-enabled datasets only). "
+        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, inference_runtime (runtime-enabled datasets only). "
         f"Available fields: {available_info}"
     )
 
