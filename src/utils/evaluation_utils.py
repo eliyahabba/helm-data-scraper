@@ -110,7 +110,7 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
     ]
 
 
-def select_evaluation_score(stats: Dict, dataset_name: Optional[str] = None) -> Tuple[str, float]:
+def select_evaluation_score(prediction, stats: Dict, dataset_name: Optional[str] = None) -> Tuple[str, float]:
     """
     Select evaluation score using supported metrics in priority order.
 
@@ -145,6 +145,7 @@ def select_evaluation_score(stats: Dict, dataset_name: Optional[str] = None) -> 
         f"No supported evaluation metric found in prediction stats. "
         f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, inference_runtime (runtime-enabled datasets only). "
         f"Available fields: {available_info}"
+        f"Full prediction: {prediction}"
     )
 
 
@@ -172,7 +173,7 @@ def create_evaluation_section(prediction: Dict, instance: Dict, dataset_name: Op
 
     # Select score using supported metrics
     stats = prediction.get("stats", {}) or {}
-    method_name, score = select_evaluation_score(stats, dataset_name)
+    method_name, score = select_evaluation_score(prediction, stats, dataset_name)
 
     return {
         "ground_truth": correct_id,
