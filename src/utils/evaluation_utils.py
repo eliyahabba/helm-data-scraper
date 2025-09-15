@@ -107,6 +107,14 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "ndcg_10",
             "description": "Normalized Discounted Cumulative Gain at cutoff 10 (0 to 1)."
         }),
+        ('NDCG@10', {
+            "method_name": "ndcg_10",
+            "description": "Alias for ndcg_10 (Normalized DCG@10)."
+        }),
+        ('RR@10', {
+            "method_name": "rr_10",
+            "description": "Reciprocal Rank at cutoff 10 (alias)."
+        }),
     ]
 
 
@@ -143,7 +151,7 @@ def select_evaluation_score(prediction, stats: Dict, dataset_name: Optional[str]
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, inference_runtime (runtime-enabled datasets only). "
+        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, NDCG@10, RR@10, inference_runtime (runtime-enabled datasets only). "
         f"Available fields: {available_info}"
         f"Full prediction: {prediction}"
     )
