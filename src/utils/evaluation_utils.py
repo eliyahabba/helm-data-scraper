@@ -51,6 +51,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "f1_set_match",
             "description": "F1 score computed over sets (order-invariant)."
         }),
+        ('f1_strings', {
+            "method_name": "f1_strings",
+            "description": "F1 score over strings (0 to 1)."
+        }),
         ('exact_match_with_references', {
             "method_name": "exact_match_with_references",
             "description": "Compares the predicted answer with the correct answer using references."
