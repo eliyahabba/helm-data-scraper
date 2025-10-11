@@ -173,13 +173,26 @@ def select_evaluation_score(prediction, stats: Dict, dataset_name: Optional[str]
         if runtime_value is not None:
             return "inference_runtime", runtime_value
 
+    # Composite fallback: Scale-style Likert scores (1-5). Compute average if present
+    scale_keys = [
+        "Helpfulness",
+        "Understandability",
+        "Completeness",
+        "Conciseness",
+        "Harmlessness",
+    ]
+    scale_values = [stats[k] for k in scale_keys if k in stats and stats[k] is not None]
+    if scale_values:
+        scale_avg = float(sum(scale_values)) / float(len(scale_values))
+        return "scale_average", scale_avg
+
     # Collect available fields and their values for debugging
     available_fields = {key: value for key, value in stats.items() if value is not None}
     available_info = ", ".join([f"{key}: {value}" for key, value in available_fields.items()])
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, f1_micro, f1_strings, accuracy, program_accuracy, openai_mrcr_accuracy, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, rouge_l, rougeL, ndcg_10, NDCG@10, RR@10, ruler_string_match_part, inference_runtime (runtime-enabled datasets only). "
+        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, f1_micro, f1_strings, accuracy, program_accuracy, openai_mrcr_accuracy, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, rouge_l, rougeL, ndcg_10, NDCG@10, RR@10, ruler_string_match_part, Helpfulness/Understandability/Completeness/Conciseness/Harmlessness (scale_average), inference_runtime (runtime-enabled datasets only). "
         f"Available fields: {available_info}"
         f"Full prediction: {prediction}"
     )
