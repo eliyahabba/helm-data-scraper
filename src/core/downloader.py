@@ -175,7 +175,7 @@ def download_task(task: str, output_dir: str, benchmark: str, overwrite: bool = 
                 json_data = get_json_from_url(url_without_benchmark)
                 if json_data:
                     _download_file_to_path(json_data, save_path)
-                    task_stats["version_usage"][benchmark] += 1
+                    task_stats["version_usage"][version] += 1
                     task_stats["found_files"] += 1
                     log_success(f"Found {task}/{file_type}.json in instruction following URL", "📥")
                 else:
