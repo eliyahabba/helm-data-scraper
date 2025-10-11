@@ -51,6 +51,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
             "method_name": "f1_set_match",
             "description": "F1 score computed over sets (order-invariant)."
         }),
+        ('f1_micro', {
+            "method_name": "f1_micro",
+            "description": "Micro-averaged F1 score (0 to 1)."
+        }),
         ('f1_strings', {
             "method_name": "f1_strings",
             "description": "F1 score over strings (0 to 1)."
@@ -70,6 +74,10 @@ def get_evaluation_metrics() -> List[Tuple[str, Dict]]:
         ('rouge_l', {
             "method_name": "rouge_l",
             "description": "Calculates the ROUGE-L score between the predicted and correct answers."
+        }),
+        ('rougeL', {
+            "method_name": "rouge_l",
+            "description": "Alias for ROUGE-L (uppercase L)."
         }),
         ('meteor', {
             "method_name": "meteor_match",
@@ -159,7 +167,7 @@ def select_evaluation_score(prediction, stats: Dict, dataset_name: Optional[str]
 
     raise ValueError(
         f"No supported evaluation metric found in prediction stats. "
-        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, ndcg_10, NDCG@10, RR@10, ruler_string_match_part, inference_runtime (runtime-enabled datasets only). "
+        f"Expected one of: exact_match, exact_match_indicator, quasi_exact_match, final_number_exact_match, math_equiv_chain_of_thought, math_equiv, f1_set_match, f1_micro, f1_strings, edit_similarity, toxic_frac, omni_math_accuracy, wildbench_score_rescaled, chain_of_thought_correctness, ifeval_strict_accuracy, test_avg, rouge_l, rougeL, ndcg_10, NDCG@10, RR@10, ruler_string_match_part, inference_runtime (runtime-enabled datasets only). "
         f"Available fields: {available_info}"
         f"Full prediction: {prediction}"
     )
