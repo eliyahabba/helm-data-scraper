@@ -5,6 +5,7 @@ Handles dataset name extraction, mapping, and processing.
 """
 
 import json
+import re
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 
@@ -192,6 +193,7 @@ def get_question_index_fallback(instance: Dict) -> Tuple[int, str]:
     Fallback method to get question index from instance ID.
     
     This is the generic method that doesn't require mapping files.
+    It extracts numbers from various instance ID patterns.
     
     Args:
         instance: Instance dictionary with 'id' and 'split' fields
@@ -200,10 +202,16 @@ def get_question_index_fallback(instance: Dict) -> Tuple[int, str]:
         Tuple of (instance_num, split)
     """
     try:
-        # Extract instance number from ID (e.g., "id123" -> 123)
-        instance_num = int(instance['id'].split('id')[1])
-        split = instance.get('split', 'test')  # Default to 'test' if no split
+        # Extract all numbers from the instance ID using regex
+        # This handles patterns like: "id123", "validation1030", "test_42", etc.
+        numbers = re.findall(r'\d+', instance['id'])
+        
+        # Use the last number found (most common pattern)
+        # For "validation1030" -> 1030, for "id123" -> 123
+        instance_num = int(numbers[-1])
+        split = instance['split'] if 'split' in instance else 'test'
         return instance_num, split
+        
     except (ValueError, KeyError, IndexError) as e:
         print(f"Warning: Could not parse instance ID '{instance.get('id', 'N/A')}': {e}")
         return 0, 'test'
