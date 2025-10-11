@@ -87,7 +87,7 @@ HELM_URL_WITHOUT_BENCHMARK_TEMPLATE: str = (
 )
 
 INSTRUCT_HELM_URL_WITHOUT_VERSION_TEMPLATE: str = (
-    "https://storage.googleapis.com/crfm-helm-public/{benchmark}/benchmark_output/runs/instruction_following/"
+    "https://storage.googleapis.com/crfm-helm-public/{benchmark}/benchmark_output/runs/instruction_following"
 )
 
 # File types fetched per task (unchanged)
